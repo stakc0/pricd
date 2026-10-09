@@ -2,7 +2,7 @@ import { directPrepare, directConfirm, listLaunches } from '../launch-direct.mjs
 export const config = { api: { bodyParser: false } };
 const CREATOR_FEE_WALLET = '1iqoin4QcFPeVusTYdmQFZoonbZAXAhucvLxhpf78gN';
 
-const BODIE_CA = '4TRfkEs8WSqXfy5XbxqvmJWhMGpkVHNs9VPrnfcmpump';
+const BODIE_CA = '7CnFHJrkxPeeDtXvGHiEMGvA9yB6heaSyef3kGAFpump';
 async function dexscreenerToken(mint = BODIE_CA){
   const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`, { headers:{accept:'application/json','user-agent':'bodie.fun/1.0'}, signal:AbortSignal.timeout(7000) });
   if(!r.ok) throw Object.assign(new Error(`DexScreener returned ${r.status}`), { status: 502 });
