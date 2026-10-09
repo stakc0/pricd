@@ -1,3 +1,33 @@
 {
-  "name":"modil-clone","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node server.mjs","dev":"node server.mjs","test":"node --check server.mjs && node --check api/[...path].js"},"engines":{"node":"22.x"}
+  "name": "modil-clone",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "test": "node --check server.mjs && node --check launch-direct.mjs && node --check 'api/[...path].js'"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@pump-fun/pump-sdk": "^4.0.0",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2",
+    "bn.js": "^5.2.1",
+    "busboy": "^1.6.0"
+  },
+  "overrides": {
+    "rpc-websockets": {
+      "uuid": "8.3.2"
+    },
+    "@solana/web3": {
+      "js": {
+        "rpc-websockets": {
+          "uuid": "8.3.2"
+        }
+      }
+    }
+  }
 }
