@@ -38,7 +38,7 @@ async function uploadMetadata(mint, image, data, website) {
 }
 export async function directPrepare(req) {
   const {fields,image}=await readMultipart(req); let body; try { body=JSON.parse(fields.launch||'{}'); } catch { fail('Invalid launch parameters.'); }
-  const wallet = new PublicKey(String(body.wallet||'')); if(!PublicKey.isOnCurve(wallet.toBytes())) fail('A signing wallet is required.');
+  let wallet; try { wallet = new PublicKey(String(body.wallet||'')); } catch { fail('A signing wallet is required.'); } if(!PublicKey.isOnCurve(wallet.toBytes())) fail('A signing wallet is required.');
   const name=String(body.name||'').trim(), symbol=String(body.symbol||'').trim().toUpperCase(), description=String(body.description||'').trim(), website=validSite(body.domainUrl);
   const budgetText=String(body.initialBuySol||'0.05'); if(!/^(?:\d+)(?:\.\d{1,9})?$/.test(budgetText)) fail('Initial buy must be a SOL amount.');
   const budgetLamports = BigInt(Math.round(Number(budgetText)*1e9)); if(budgetLamports<50_000_000n || !Number.isSafeInteger(Number(budgetLamports))) fail('Initial buy must be at least 0.05 SOL.');
@@ -58,6 +58,6 @@ export async function directPrepare(req) {
   const result={ intentId:mint.publicKey.toBase58(),mint:mint.publicKey.toBase58(),website:tokenDirectory,domainSite:website,tokenDirectory,transactions:[{phase:'create',transaction:Buffer.from(createTx.serialize()).toString('base64')},{phase:'buy',transaction:Buffer.from(buyTx.serialize()).toString('base64')}],estimatedBuySol:budgetText,creatorFeeWallet:TREASURY.toBase58(),name,symbol,description,metadataUri:uri }; await savePrepared({mint:mint.publicKey.toBase58(),name,symbol,description,domainSite:website,tokenDirectory,metadataUri:uri,initialBuySol:budgetText}); return result;
 }
 export async function directConfirm(body) {
-  const mint=new PublicKey(String(body.intentId||'')); const encoded=String(body.transaction||''); if(!encoded||encoded.length>10000) fail('The signed launch transaction is required.'); const tx=VersionedTransaction.deserialize(Buffer.from(encoded,'base64')); const keys=tx.message.staticAccountKeys.map(k=>k.toBase58()); if(!keys.includes(mint.toBase58())) fail('Signed transaction does not match the launch intent.');
+  let mint; try { mint = new PublicKey(String(body.intentId||'')); } catch { fail('A valid launch intent is required.'); } const encoded=String(body.transaction||''); if(!encoded||encoded.length>10000) fail('The signed launch transaction is required.'); const tx=VersionedTransaction.deserialize(Buffer.from(encoded,'base64')); const keys=tx.message.staticAccountKeys.map(k=>k.toBase58()); if(!keys.includes(mint.toBase58())) fail('Signed transaction does not match the launch intent.');
   const connection=new Connection(process.env.PUMP_RPC_URL||process.env.LOOT_RPC_URL||'https://api.mainnet-beta.solana.com','confirmed'); const signature=await connection.sendRawTransaction(tx.serialize(),{skipPreflight:false,maxRetries:3}); const result=await connection.confirmTransaction(signature,'confirmed'); if(result.value.err) fail('Launch transaction failed on Solana.',422); await markConfirmed(mint.toBase58(),signature); return {status:'confirmed',mint:mint.toBase58(),signature,website:`https://bodie.tech/${mint.toBase58()}`,tokenDirectory:`https://bodie.tech/${mint.toBase58()}`};
 }
