@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {readFile,stat} from 'node:fs/promises';
 import apiHandler from './api/[...path].js';
 const ROOT=path.dirname(fileURLToPath(import.meta.url));
-const ORIGIN='https://bodie.fun';
+const ORIGIN='https://bodie.tech';
 const MIME={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime','.svg':'image/svg+xml','.ico':'image/x-icon','.woff':'font/woff','.woff2':'font/woff2','.txt':'text/plain; charset=utf-8'};
 function safe(p){const decoded=decodeURIComponent(p);if(decoded.includes('\0')||decoded.includes('..'))return null;return path.resolve(ROOT,'.'+decoded);}
 async function proxy(req,res,url){const target=new URL(url.pathname+url.search,ORIGIN);const headers={};for(const k of ['accept','content-type','cookie','authorization','user-agent','x-requested-with','next-action','rsc'])if(req.headers[k])headers[k]=req.headers[k];const chunks=[];for await(const c of req)chunks.push(c);const upstream=await fetch(target,{method:req.method,headers,body:chunks.length?Buffer.concat(chunks):undefined,redirect:'manual'});res.writeHead(upstream.status,Object.fromEntries([...upstream.headers].filter(([k])=>!['content-encoding','transfer-encoding'].includes(k))));res.end(Buffer.from(await upstream.arrayBuffer()));}
